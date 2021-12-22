@@ -1,6 +1,7 @@
 import sys
 import time 
 import asyncio
+import argparse
 
 
 import numpy as np
@@ -11,23 +12,35 @@ import matplotlib.pyplot as plt
 from bleak import BleakClient
 from npy_append_array import NpyAppendArray
 
+parser = argparse.ArgumentParser(description='RECEIVE BLE DATA SAVE')
+parser.add_argument('--MAC')
+parser.add_argument('--C_UUID')
+parser.add_argument('--mode')
 
 
-address = "CC:54:16:E2:03:33"
-S_uuid = "00001523-1212-efde-1523-785feabcd123"
-C_uuid = "00001524-1212-efde-1523-785feabcd123"
 
+args = parser.parse_args()
+print(args)
+
+address = args.MAC
+C_uuid = args.C_UUID
+mode = int(args.mode)
 #save init
-folder = "./data/"
 name = time.strftime('%Y%m%d_%H%M')
-path = folder + name 
+
+path =  name 
 
 path1 = path + "_1" + ".npy"
 path2 = path + "_2" + ".npy"
 
+print(path1)
+print(path2)
+
 np_path1 = NpyAppendArray(path1)
 np_path2 = NpyAppendArray(path2)
 
+path0 = path + "_0" + ".npy"
+np_path0 = NpyAppendArray(path0)
 
 
 
@@ -39,26 +52,12 @@ def callback(sender:int , data:bytearray):
     #print("========================")
     bleTerminalPlot(re_data)
     #save 
-    bleSave(path,re_data)
-
-def bleTerminalPlot(data):
-    cnt = 0
-    for i in data:
-        cnt+=1
-        print(i,end=" ")
-        if(cnt%10==0):
-            print("\n")
+    if(mode==1):
+        bleSave1(path,re_data)
+    if(mode==2):
+        bleSave2(path,re_data)
 
 
-
-def bleSave(path,data):
-    first = data[0::2]
-    data1 = np.array(first)
-    np_path1.append(data1)
-
-    second = data[1::2]
-    data2 = np.array(second)
-    np_path2.append(data2)
    
 
 async def ble(address):
@@ -89,9 +88,30 @@ async def ble(address):
     finally:
         end = time.time()
         print(end-start)
-        print(n)
         await client.disconnect()
 
+
+def bleTerminalPlot(data):
+    cnt = 0
+    for i in data:
+        cnt+=1
+        print(i,end=" ")
+        if(cnt%10==0):
+            print("\n")
+
+
+def bleSave1(path,data):
+    np_path0.append(np.array(data))
+
+
+def bleSave2(path,data):
+    first = data[0::2]
+    data1 = np.array(first)
+    np_path1.append(data1)
+
+    second = data[1::2]
+    data2 = np.array(second)
+    np_path2.append(data2)
 
 
 
