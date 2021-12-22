@@ -59,27 +59,27 @@ def bleSave(path,data):
     second = data[1::2]
     data2 = np.array(second)
     np_path2.append(data2)
-   
+
 
 async def ble(address):
     client = BleakClient(address)
-    
+
     try:
         #connect
         await client.connect() 
         print("connect to " + client.address)
 
-        
+
 
         start = time.time()
 
         # notify
         await client.start_notify(C_uuid,callback)
-        
+
         while(True):
             data = await client.read_gatt_char(C_uuid)
 
-           
+
 
 
     except Exception as e:
@@ -89,7 +89,6 @@ async def ble(address):
     finally:
         end = time.time()
         print(end-start)
-        print(n)
         await client.disconnect()
 
 
@@ -98,6 +97,3 @@ async def ble(address):
 
 
 asyncio.run(ble(address))
-
-
-
