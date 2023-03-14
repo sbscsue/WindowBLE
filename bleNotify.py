@@ -13,33 +13,20 @@ from npy_append_array import NpyAppendArray
 
 
 
-address = "CC:54:16:E2:03:33"
-S_uuid = "00001523-1212-efde-1523-785feabcd123"
-C_uuid = "00001524-1212-efde-1523-785feabcd123"
+address = "CA:14:9F:6E:8B:21"
+S_uuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
+C_uuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
 #save init
-folder = "./data/"
-name = time.strftime('%Y%m%d_%H%M')
-path = folder + name 
+folder = "./WindowBLE/data/"
+name = "ppg"
 
-path1 = path + "_1" + ".npy"
-path2 = path + "_2" + ".npy"
+path1 = folder + name + ".npy"
 
 np_path1 = NpyAppendArray(path1)
-np_path2 = NpyAppendArray(path2)
+print(path1)
 
 
-
-
-def callback(sender:int , data:bytearray):
-    #read
-    re_data = list(bytes(data))
-
-    #show int terminal 
-    #print("========================")
-    bleTerminalPlot(re_data)
-    #save 
-    bleSave(path,re_data)
 
 def bleTerminalPlot(data):
     cnt = 0
@@ -56,22 +43,34 @@ def bleSave(path,data):
     data1 = np.array(first)
     np_path1.append(data1)
 
-    second = data[1::2]
-    data2 = np.array(second)
-    np_path2.append(data2)
-   
+
+
+def callback(sender:int , data:bytearray):
+    #read
+    type(data)
+
+    print("======================================================")
+    parsingData = []
+    for i in range(0,len(data),2):
+        parsingData.append(data[i+1] * 255 +  data[i])
+    bleTerminalPlot(parsingData)
+    bleSave(path1,parsingData)    
+    
+
+
+
+    
 
 async def ble(address):
+    print("start")
     client = BleakClient(address)
-    
     try:
         #connect
+        print("connect start")
         await client.connect() 
         print("connect to " + client.address)
 
-        
-
-        start = time.time()
+        #start = time.time()
 
         # notify
         await client.start_notify(C_uuid,callback)
@@ -79,17 +78,13 @@ async def ble(address):
         while(True):
             data = await client.read_gatt_char(C_uuid)
 
-           
-
-
     except Exception as e:
         print(e)
         pass
 
     finally:
-        end = time.time()
-        print(end-start)
-        print(n)
+        #end = time.time()
+        #print(end-start)
         await client.disconnect()
 
 

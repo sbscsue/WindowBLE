@@ -7,43 +7,55 @@ from matplotlib.animation import FuncAnimation
 
 from npy_append_array import NpyAppendArray
 
-sr = 1000
+#window
+sr = 500
 t = 20
+window = sr * t
 
-window = sr*t
+#file path
+folder = "./WindowBLE/data/"
+name = "ppg"
+path1 = folder + name + ".npy"
 
-name = time.strftime('%Y%m%d_%H%M')
- 
+#plot variable
+plot_D = np.zeros(window) 
+global npy_flag
+npy_flag = 0
+global plot_flag
+plot_flag = 0
+
+
+#window size넘어가는 npy파일 처음 열어버리면 오류뜹니다 !! 로직이 그래요 
+#blenotify하고 바로 키시길! 
 def animate(i):
-    data1 =np.load('data/'+name+"_1.npy")
-    data2 =np.load('data/'+name+"_2.npy")
-    print("data one:{} two:{}".format(data1.size, data2.size))
+    global npy_flag
+    global plot_flag
 
-    flag = data1.size // window
-    start  = flag*window
+    data =np.load(path1)
+    
+    y = data[npy_flag:]
+    n = len(y)
+    print(n)
+    if (plot_flag+n)>window:
+        plot_D[plot_flag:] = y[0:window-plot_flag]
+        plot_D[0:n-(window-plot_flag)] = y[window-plot_flag:]
+        plot_flag = n-(window-plot_flag)
+    else:
+        plot_D[plot_flag:plot_flag+n] = y
+        plot_flag = plot_flag+n
+    npy_flag = npy_flag + n
+    print("plot_flag:{} npy_flag:{}".format(plot_flag,npy_flag))
 
-    print(flag)
 
-    y1 = data1[start:]
-    y2 = data2[start:]
-    print("slice one:{} two:{}".format(y1.size, y2.size))
-   
-    plt.subplot(2,1,1).cla()
-    plt.subplot(2,1,2).cla()
+    plt.subplot(1,1,1).cla()
 
-    ax1 = plt.subplot(2,1,1)
-    ax2 = plt.subplot(2,1,2)
+    ax1 = plt.subplot(1,1,1)
+    ax1.set_ylim([5000,10000])
+    ax1.plot(plot_D, label='PPG',color = 'orange')
 
-    ax1.plot(y1, label='ECG 1',color = 'orange')
-    ax2.plot(y2, label='ECG 2',color = 'blue')
-
-    #ax1.set_xlim(len(y1))
-    ax1.set_ylim([0,255])
-    #ax2.set_xlim(len(y2))
-    ax2.set_ylim([0,255])
     
     plt.tight_layout()
- 
+
 ani = FuncAnimation(plt.gcf(),animate, interval = 1000)
  
 plt.tight_layout()
