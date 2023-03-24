@@ -16,39 +16,70 @@ import csv
 #https://www.youtube.com/watch?v=cx3vvBfLu04
 #https://danielmuellerkomorowska.com/2022/02/14/measuring-and-visualizing-gpu-power-usage-in-real-time-with-asyncio-and-matplotlib/
 
-#BLE 설정
+#############################################################################################
+#Initalize this value
+
+#--------------------------------------------------------------------------------------------#
+
+# BLE 설정
 address = "E9:3A:52:EB:D0:1C"
 S_uuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 C_uuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
-#PLOT 관련 
+#--------------------------------------------------------------------------------------------#
+
+# PLOT 관련 변수 -> xlim결정됨 
 PLOT_SIZE = 6
-ADC_SAMPLE_SIZE = 30
+ADC_SAMPLE_SIZE = 60
 
 SAMPLING_FS = 1000
 TIME_LENGTH = 10
 
-#initalize plot 
+# ※equal size with PLOT_SIZE
+figureSize = (10,12) #plot figure size
+titles = ["value1","value2","value3","value4","value5","value6"] # subplot title
+minMaxs = [[0,10],[0,10],[0,100],[0,100],[0,500],[0,500]]  #subplot ylim
+lineType = ["r-","c-","y-","k-","m-","b-"] #plot color : https://kongdols-room.tistory.com/82
+
+
+#--------------------------------------------------------------------------------------------#
+
+#file save path
+FILE_PATH = "./ppg.csv"
+
+#--------------------------------------------------------------------------------------------#
+
+# ble data parsing format 
+def bleDataParsing(data:bytearray):
+    #int 
+    # parsingData.append(data[i+1] * 255 +  data[i])
+
+    #float
+    #https://stackoverflow.com/questions/5415/convert-bytes-to-floating-point-numbers
+    parsingData = [struct.unpack('f',data[i*4:(i+1)*4])[0] for i in range(30)]
+    return parsingData
+
+#############################################################################################
+
+# 1. plot
 N = SAMPLING_FS* TIME_LENGTH 
 data_x = np.arange(0, N, 1)
 data_y = np.ones((PLOT_SIZE,N)) 
 
 plt.ion()
 plt.rcParams.update({'font.size': 18})
-figure =  plt.figure(figsize=(10,12))
+figure =  plt.figure(figsize=figureSize)
 
-
-#equal size with plot_size
 subplots = []
 lines = []
-titles = ["value1","value2","value3","value4","value5","value6"]
-minMaxs = [[0,10],[0,10],[0,100],[0,100],[0,500],[0,500]]
 for i in range(PLOT_SIZE):
-    ax = figure.add_subplot(6,1,i+1)
-    l, = ax.plot(data_x, data_y[i],'b-', linewidth=3)
+    ax = figure.add_subplot(PLOT_SIZE,1,i+1)
+    l, = ax.plot(data_x, data_y[i],lineType[i], linewidth=3)
     subplots.append(ax)
     lines.append(l)
     plt.title(titles[i])
+
+figure.tight_layout()
 
 async def plot():
     while True:
@@ -59,19 +90,7 @@ async def plot():
         figure.canvas.flush_events()
         await asyncio.sleep(0.2)
 
-#initalize file save
-FILE_PATH = "./ppg.csv"
-
-def bleDataParsing(data:bytearray):
-    #int 
-    # parsingData.append(data[i+1] * 255 +  data[i])
-
-    #float
-    #https://stackoverflow.com/questions/5415/convert-bytes-to-floating-point-numbers
-    parsingData = [struct.unpack('f',data[i*4:(i+1)*4])[0] for i in range(30)]
-    return parsingData
-
-
+# 2. BLE
 PLOT_FLAG = 0
 def bleDataSet(parsingData):
     global PLOT_FLAG
