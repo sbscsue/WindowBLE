@@ -23,40 +23,45 @@ import csv
 
 # BLE 설정
 address = "E9:3A:52:EB:D0:1C"
-S_uuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
-C_uuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
+S_uuid = "00001523-1212-efde-1523-785feabcd123"
+C_uuid = "00001524-1212-efde-1523-785feabcd123"
 
 #--------------------------------------------------------------------------------------------#
 
 # PLOT 관련 변수 -> xlim결정됨 
-PLOT_SIZE = 6
-ADC_SAMPLE_SIZE = 60
+PLOT_SIZE = 2
+ADC_SAMPLE_SIZE = 100
 
-SAMPLING_FS = 1000
+SAMPLING_FS = 2*1000
 TIME_LENGTH = 10
 
 # ※equal size with PLOT_SIZE
 figureSize = (10,12) #plot figure size
-titles = ["value1","value2","value3","value4","value5","value6"] # subplot title
-minMaxs = [[0,10],[0,10],[0,100],[0,100],[0,500],[0,500]]  #subplot ylim
-lineType = ["r-","c-","y-","k-","m-","b-"] #plot color : https://kongdols-room.tistory.com/82
+titles = ["value1","value2"] # subplot title
+minMaxs = [[0,pow(2,8)],[0,pow(2,8)]]  #subplot ylim
+lineType = ["r-","c-"] #plot color : https://kongdols-room.tistory.com/82
 
 
 #--------------------------------------------------------------------------------------------#
 
 #file save path
-FILE_PATH = "./ppg.csv"
+FILE_PATH = "./emg.csv"
 
 #--------------------------------------------------------------------------------------------#
 
 # ble data parsing format 
 def bleDataParsing(data:bytearray):
-    #int 
-    # parsingData.append(data[i+1] * 255 +  data[i])
-
+    parsingData = []
+    #8bit
+    for i in range(len(data)):
+        parsingData.append(data[i])
+    #10bit
+    #for i in range(0,len(data),2):
+    #    parsingData.append(data[i+1] * 255 +  data[i])
     #float
     #https://stackoverflow.com/questions/5415/convert-bytes-to-floating-point-numbers
-    parsingData = [struct.unpack('f',data[i*4:(i+1)*4])[0] for i in range(30)]
+    #parsingData = [struct.unpack('f',data[i*4:(i+1)*4])[0] for i in range(30)]
+        
     return parsingData
 
 #############################################################################################
@@ -88,7 +93,7 @@ async def plot():
             subplots[i].set_ylim(minMaxs[i])
             subplots[i].set_xlim(0,N)
         figure.canvas.flush_events()
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(0.05)
 
 # 2. BLE
 PLOT_FLAG = 0
@@ -99,7 +104,7 @@ def bleDataSet(parsingData):
         #print(i%PLOT_SIZE, PLOT_FLAG)
         buff.append(parsingData[i])
         data_y[i%PLOT_SIZE][PLOT_FLAG] = parsingData[i]
-        if(i%PLOT_SIZE==5):
+        if(i%PLOT_SIZE==0):
             with open(FILE_PATH ,'a', newline='',encoding='utf8') as f:
                 reader = csv.reader(f)
                 wr = csv.writer(f)
@@ -107,6 +112,7 @@ def bleDataSet(parsingData):
                 #print(buff)
             buff =[]
             PLOT_FLAG+=1
+            #print(PLOT_FLAG)
             if(PLOT_FLAG ==N):
                 PLOT_FLAG = 0
     
