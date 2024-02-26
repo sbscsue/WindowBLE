@@ -23,14 +23,14 @@ import csv
 
 # BLE 설정
 address = "E9:3A:52:EB:D0:1C"
-S_uuid = "00001523-1212-efde-1523-785feabcd123"
-C_uuid = "00001524-1212-efde-1523-785feabcd123"
+S_uuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
+C_uuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
 #--------------------------------------------------------------------------------------------#
 
 # PLOT 관련 변수 -> xlim결정됨 
 PLOT_SIZE = 2
-ADC_SAMPLE_SIZE = 100
+ADC_SAMPLE_SIZE = 64
 
 SAMPLING_FS = 2*1000
 TIME_LENGTH = 10
