@@ -11,6 +11,7 @@ from bleak import BleakClient
 import struct
 
 import csv
+from datetime import datetime
 
 #참고자료
 #https://www.youtube.com/watch?v=cx3vvBfLu04
@@ -22,7 +23,7 @@ import csv
 #--------------------------------------------------------------------------------------------#
 
 # BLE 설정
-address = "E9:3A:52:EB:D0:1C"
+address = "F2:BC:59:F5:9A:7A"
 S_uuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 C_uuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
@@ -33,10 +34,10 @@ PLOT_SIZE = 2
 ADC_SAMPLE_SIZE = 64
 
 SAMPLING_FS = 2*1000
-TIME_LENGTH = 10
+TIME_LENGTH = 5
 
 # ※equal size with PLOT_SIZE
-figureSize = (10,12) #plot figure size
+figureSize = (10,8) #plot figure size
 titles = ["value1","value2"] # subplot title
 minMaxs = [[0,pow(2,8)],[0,pow(2,8)]]  #subplot ylim
 lineType = ["r-","c-"] #plot color : https://kongdols-room.tistory.com/82
@@ -93,7 +94,7 @@ async def plot():
             subplots[i].set_ylim(minMaxs[i])
             subplots[i].set_xlim(0,N)
         figure.canvas.flush_events()
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.2)
 
 # 2. BLE
 PLOT_FLAG = 0
@@ -108,6 +109,8 @@ def bleDataSet(parsingData):
             with open(FILE_PATH ,'a', newline='',encoding='utf8') as f:
                 reader = csv.reader(f)
                 wr = csv.writer(f)
+                current_time = datetime.now()
+                buff.append(current_time)
                 wr.writerow(buff)
                 #print(buff)
             buff =[]
